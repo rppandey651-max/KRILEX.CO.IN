@@ -5,31 +5,49 @@ import os
 import base64
 import random
 
-# ====================================================
+# =======================================================
 # PART 1: GLOBAL SETUP, SESSION STATES & STYLESHEET
-# ====================================================
+# =======================================================
 
-# Page Configuration Setup - Set to 'centered' view layout model matching 1.py structure
+# 1. Page Configuration and Theme Override (Light Mode Setup)
 st.set_page_config(page_title="KRILEX Legal Tech Innovation", layout="centered")
 
-# Exact Local Desktop Asset Destination Path Configuration
-BASE_PATH = r"C:\Users\hp\Desktop\photo_6244332980792922580_y"
+# CSS to force Light Mode and Hide Header Elements
+st.markdown("""
+    <style>
+    /* Force Light Theme Colors */
+    .stApp {
+        background-color: #FFFFFF !important;
+        color: #31333F !important;
+    }
+    div[data-testid="stSidebar"] {
+        background-color: #F0F2F6 !important;
+    }
+    /* Hide Deploy Button and Header */
+    .stAppDeployButton {display: none !important;}
+    header {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
 
-def load_desktop_logo(base_path):
-    extensions = [".jpg", ".jpeg", ".png", ".JPG", ".PNG"]
+# 2. Render Server Path Configuration for Logo
+LOGO_FILENAME = "photo_6244332980792922580_y"
+
+def load_server_logo(filename):
+    extensions = [".png", ".jpg", ".jpeg", ".PNG", ".JPG", ".JPEG"]
     for ext in extensions:
-        full_path = base_path + ext
+        full_path = filename + ext
         if os.path.exists(full_path):
             try:
                 with open(full_path, "rb") as image_file:
                     encoded_string = base64.b64encode(image_file.read()).decode()
-                    mime_type = "png" if ext.lower() == ".png" else "jpeg"
-                    return f"data:image/{mime_type};base64,{encoded_string}"
+                    mime_type = "image/png" if "png" in ext.lower() else "image/jpeg"
+                    return f"data:{mime_type};base64,{encoded_string}"
             except Exception:
                 return ""
     return ""
 
-LOGO_BASE64 = load_desktop_logo(BASE_PATH)
+# Logo load karein aur display karein
+logo_base64 = load_server_logo(LOGO_FILENAME)
 
 # Global Session State System Tracking Initializations
 if "page" not in st.session_state: st.session_state.page = "main"
@@ -58,10 +76,10 @@ if "footer_page" not in st.session_state: st.session_state.footer_page = None
 
 elapsed_time = time.time() - st.session_state.start_time
 watermark_css = ""
-if LOGO_BASE64 and elapsed_time >= 2.5:
+if logo_base64 and elapsed_time >= 2.5:
     watermark_css = f"""
     .stApp {{
-        background-image: url("{LOGO_BASE64}") !important;
+        background-image: url("{logo_base64}") !important;
         background-repeat: no-repeat !important;
         background-position: center 65% !important;
         background-size: 35% !important;
@@ -139,8 +157,8 @@ if elapsed_time < 2.5:
         </style>
     """, unsafe_allow_html=True)
     
-    if LOGO_BASE64:
-        st.markdown(f'<div class="full-page-splash"><img src="{LOGO_BASE64}" class="big-splash-logo"></div>', unsafe_allow_html=True)
+    if logo_base64:
+        st.markdown(f'<div class="full-page-splash"><img src="{logo_base64}" class="big-splash-logo"></div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="full-page-splash"><h1 style="color:#0096ff; font-family:sans-serif; font-size:4rem;">KRILEX Legal Tech</h1></div>', unsafe_allow_html=True)
     
@@ -150,8 +168,8 @@ if elapsed_time < 2.5:
 elif not st.session_state.logged_in:
     
     if st.session_state.page == "main":
-        if LOGO_BASE64: 
-            st.markdown(f'<div class="center-logo-container"><img src="{LOGO_BASE64}" width="160"></div>', unsafe_allow_html=True)
+        if logo_base64: 
+            st.markdown(f'<div class="center-logo-container"><img src="{logo_base64}" width="160"></div>', unsafe_allow_html=True)
         st.markdown("<h1 style='text-align: center; color: #1e3a8a;'>KRILEX Legal Tech Innovation</h1>", unsafe_allow_html=True)
         st.markdown("<p style='text-align: center; color: #334155;'>Welcome to the Digital Legal Petition Generator.</p>", unsafe_allow_html=True)
         st.markdown("---")
@@ -178,14 +196,15 @@ elif not st.session_state.logged_in:
             st.rerun()
 
     elif st.session_state.page == "login":
-        if LOGO_BASE64: 
-            st.markdown(f'<div class="center-logo-container"><img src="{LOGO_BASE64}" width="140"></div>', unsafe_allow_html=True)
+        if logo_base64: 
+            st.markdown(f'<div class="center-logo-container"><img src="{logo_base64}" width="140"></div>', unsafe_allow_html=True)
         st.markdown("### 🔐 User Login")
         
         if not st.session_state.login_otp_dispatched:
             with st.form("login_form_container", clear_on_submit=False):
                 uid = st.text_input("Login ID", key="login_uid_field").strip()
                 pwd = st.text_input("Password", type="password", key="login_pwd_field")
+                remember_me = st.checkbox("Remember Me", key="login_remember_me_checkbox")
                 submit_login = st.form_submit_button("Login", type="primary", use_container_width=True)
                 
                 if submit_login:
@@ -297,8 +316,8 @@ elif not st.session_state.logged_in:
                 st.rerun()
 
     elif st.session_state.page == "register":
-        if LOGO_BASE64: 
-            st.markdown(f'<div class="center-logo-container"><img src="{LOGO_BASE64}" width="140"></div>', unsafe_allow_html=True)
+        if logo_base64: 
+            st.markdown(f'<div class="center-logo-container"><img src="{logo_base64}" width="140"></div>', unsafe_allow_html=True)
         st.markdown("### 📝 New User Registration")
         if st.session_state.reg_success_msg:
             st.success(st.session_state.reg_success_msg)
@@ -310,14 +329,15 @@ elif not st.session_state.logged_in:
         else:
             with st.form("reg_step1_form"):
                 new_uid = st.text_input("Choose Unique Login ID").strip()
+                new_name = st.text_input("Full Name").strip()
                 new_email = st.text_input("Email Address").strip()
                 new_phone = st.text_input("Phone Number").strip()
                 submit_step1 = st.form_submit_button("Send Verification OTP", type="primary", use_container_width=True)
                 if submit_step1:
-                    if not new_uid or not new_email or not new_phone:
+                    if not new_uid or not new_name or not new_email or not new_phone:
                         st.warning("⚠️ All fields are mandatory.")
                     else:
-                        st.session_state.temp_reg_data = {"uid": new_uid, "email": new_email, "phone": new_phone}
+                        st.session_state.temp_reg_data = {"uid": new_uid, "name": new_name, "email": new_email, "phone": new_phone}
                         st.session_state.generated_otp = str(random.randint(100000, 999999))
                         if db.send_otp_via_gmail(new_email, st.session_state.generated_otp, "Registration Framework Setup"):
                             st.session_state.page = "register_otp"
@@ -543,61 +563,35 @@ elif not st.session_state.logged_in:
             st.rerun()
 # Renders Internal Connected Workstation Panels ONLY if logged_in state is verified
 else:
-    # 🎯 Premium Header Component Add
-    st.markdown(f"""
-        <div class='premium-header'>
-            <h1>🏛️ KRILEX Legal Tech Innovation</h1>
-            <p>Professional Digital Workstation Console | Active Advocate Session</p>
-        </div>
-    """, unsafe_allow_html=True)
-
-    # Upper Action Ribbon Strip
-    h_col1, h_col2, h_col3 = st.columns([1, 2, 1])
+    # Upper Action Ribbon Strip - Added a Back button next to System Home
+    h_col1, h_col2, h_col3 = st.columns(3)
 
     with h_col1:
-        st.markdown('<div style="display: flex; flex-direction: column; gap: 8px;">', unsafe_allow_html=True)
-        st.button("🌐 Language", key="lang_btn", use_container_width=True)
-        
         if st.button("🏠 System Home", key="global_home_btn", use_container_width=True):
             st.session_state.footer_page = None
             st.session_state.active_app_tile = None
             st.session_state.selected_court = "--- Choose Jurisdiction ---"
+            st.session_state.canvas_sub_page = "editor"
             st.rerun()
-            
-        if st.session_state.footer_page is not None:
-            if st.button("⬅ Back to Menu", key="back_from_footer", use_container_width=True):
-                st.session_state.footer_page = None; st.rerun()
-        elif st.session_state.active_app_tile is not None:
-            if st.button("⬅ Back to Menu", key="back_to_tiles_menu", use_container_width=True):
-                st.session_state.active_app_tile = None; st.rerun()
-        elif st.session_state.selected_court != "--- Choose Jurisdiction ---":
-            if st.button("⬅ Change Court", key="back_to_court_select", use_container_width=True):
-                st.session_state.selected_court = "--- Choose Jurisdiction ---"; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
+    # 🎯 NEW: Widescreen Top Back Button Navigation Added Here
     with h_col2:
-        # Dynamic Premium KPI Metrics Display Add
-        m_col1, m_col2 = st.columns(2, gap="medium")
-        with m_col1:
-            st.markdown("<div class='kpi-card'><h3>Drafts Generated</h3><h2>48</h2></div>", unsafe_allow_html=True)
-        with m_col2:
-            st.markdown("<div class='kpi-card'><h3>Active Plan</h3><h2>Premium Suite</h2></div>", unsafe_allow_html=True)
+        if st.button("🔙 Back to Forum Hub", key="global_top_back_btn", use_container_width=True):
+            st.session_state.active_app_tile = None  # Drops active asset layer back to main choice matrix
+            st.session_state.canvas_sub_page = "editor"
+            st.rerun()
 
     with h_col3:
-        with st.popover("👤 Advocate Profile Card", use_container_width=True):
+        with st.popover("👤 Profile Card", use_container_width=True):
             st.markdown(f"##### Adv. {st.session_state.username}")
-            with st.container(border=True):
-                uploaded_pic = st.file_uploader("Upload Profile Image", type=["png", "jpg", "jpeg"], key="popover_pic_uploader")
-                if uploaded_pic is not None: st.image(uploaded_pic, width=100)
-                st.caption("**Profile Parameters Mapping**")
-                st.text(f"ID Cluster: ADV-{random.randint(1000,9999)}")
-                st.text("Privilege: Verified Counsel")
-            if st.button("🔒 Terminate Secure Session", key="popover_logout", use_container_width=True, type="primary"):
+            if st.button("🔒 Terminate secure session", key="popover_logout", use_container_width=True, type="primary"):
                 st.session_state.logged_in = False
                 st.session_state.page = "main"
                 st.rerun()
 
+
     st.markdown("---")
+
 
     if st.session_state.footer_page is not None:
         st.markdown('<div class="workstation-container">', unsafe_allow_html=True)
@@ -633,11 +627,11 @@ else:
             
             r1_col1, r1_col2, r1_col3 = st.columns(3)
             with r1_col1:
-                st.markdown('<div class="legal-tile tile-blue">⚖️ Entire Petition Suite</div>', unsafe_allow_html=True)
+                st.markdown('<div class="legal-tile tile-blue">⚖️ Entire Petition </div>', unsafe_allow_html=True)
                 if st.button("Open Entire Petition", key="btn_entire", use_container_width=True, type="primary"): 
                     st.session_state.active_app_tile = "Entire Petition"; st.rerun()
             with r1_col2:
-                st.markdown('<div class="legal-tile tile-green">📄 Caveat Protection Application</div>', unsafe_allow_html=True)
+                st.markdown('<div class="legal-tile tile-green">📄 Caveat Application</div>', unsafe_allow_html=True)
                 if st.button("Open Caveat Application", key="btn_caveat", use_container_width=True): 
                     st.session_state.active_app_tile = "Caveat Application"; st.rerun()
             with r1_col3:
@@ -649,7 +643,7 @@ else:
 
             r2_col1, r2_col2, r2_col3 = st.columns(3)
             with r2_col1:
-                st.markdown('<div class="legal-tile tile-green">🛡️ Stay & Interlocutory Application</div>', unsafe_allow_html=True)
+                st.markdown('<div class="legal-tile tile-green">🛡️ Stay Application</div>', unsafe_allow_html=True)
                 if st.button("Open Stay Application", key="btn_stay", use_container_width=True): 
                     st.session_state.active_app_tile = "Stay Application"; st.rerun()
             with r2_col2:
@@ -663,47 +657,360 @@ else:
 
         else:
             active_form = st.session_state.active_app_tile
-            st.markdown('<div class="workstation-container">', unsafe_allow_html=True)
-            st.markdown(f"### 📝 Drafting Canvas Framework: **{active_form}**")
-            st.info(f"Target Jurisdiction Channel: {st.session_state.selected_court}")
-            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Global sub-page routing state parameter initialization for document layout toggle
+            if "canvas_sub_page" not in st.session_state:
+                st.session_state.canvas_sub_page = "editor"
+
+            # Initialize dynamic tracking counters inside session state if not set
+            if "exp_p_count" not in st.session_state: st.session_state.exp_p_count = 1
+            if "p_count" not in st.session_state: st.session_state.p_count = 1
+            if "r_count" not in st.session_state: st.session_state.r_count = 1
 
             p_names_list = []
+            exp_p_names_list = []
             r_names_list = []
             
-            st.markdown('<div class="workstation-container">', unsafe_allow_html=True)
-            district_val = st.text_input("📍 FORUM JURISDICTION DISTRICT", placeholder="e.g. MEERUT", key="f_district").upper()
-            legal_provision = st.selectbox(
-                "📜 Select Article / Rule Provision Standard", 
-                ["Article 226 of the Constitution of India (Writ Petition)", 
-                 "Article 227 of the Constitution of India (Misc. Petition)", 
-                 "Section 151 of Civil Procedure Code (Civil Misc.)"], 
-                key="f_prov"
+            # Permanent default template text structure for editable paragraph blocks
+            default_legal_text = (
+                "2- That the applicant has not received any copy of the intended application till date.\n\n"
+                "3- That the Caveator has strong apprehension that the Proposed Petitioner may seek an ad-interim "
+                "ex-parte stay or restraining order without serving prior due notice to the Caveator, which would cause "
+                "irreparable loss and injury to the Applicant."
             )
-            st.markdown('</div>', unsafe_allow_html=True)
-            
-            col_f1, col_f2 = st.columns(2)
-            with col_f1:
-                st.markdown("##### 👤 Petitioners / Applicants Stack")
-                with st.container(border=True):
-                    for i in range(st.session_state.p_count):
-                        val = st.text_input(f"Petitioner No. {i+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_p_name_{i}")
-                        if val: p_names_list.append(val)
-                    if st.button("➕ Add Petitioner Entity", key="add_p_btn", use_container_width=True): 
-                        st.session_state.p_count += 1; st.rerun()
+
+            # Persistent check safely falling back variables mapping
+            district_mapped = st.session_state.get("persist_district", "_____________________")
+            provision_mapped = st.session_state.get("persist_provision", "Article 226 of the Constitution of India (Writ Petition)")
+            c_name_mapped = st.session_state.get("persist_c_name", "_____________________")
+            c_addr_mapped = st.session_state.get("persist_c_addr", "_____________________")
+            order_date_mapped = st.session_state.get("persist_order_date", "__________")
+            additional_paras_mapped = st.session_state.get("persist_additional_paras", default_legal_text)
+
+
+            # ====================================================
+            # SUB-PAGE LAYER A: THE CONTENT COMPILER EDITOR VIEW
+            # ====================================================
+            if st.session_state.canvas_sub_page == "editor":
+                st.markdown("""
+                    <style>
+                    .block-container {
+                        max-width: 95% !important;
+                        padding-left: 3rem !important;
+                        padding-right: 3rem !important;
+                    }
+                    </style>
+                """, unsafe_allow_html=True)
+
+                st.markdown(f"### 📝 Drafting Input Form: **{active_form}**")
+                
+                # Create an expanded 50/50 split column layout grid structure 
+                col_left_form, col_right_form = st.columns(2, gap="large")
+                
+                # --- LEFT COLUMN: CASE INFORMATION & DISTRICT PARAMETERS ---
+                # --- LEFT COLUMN: CASE INFORMATION & DISTRICT PARAMETERS ---
+                with col_left_form:
+                    st.markdown("##### 📍 Case Information Parameters")
                     
-            with col_f2:
-                st.markdown("##### 👥 Respondents / Defendants Stack")
+                    # CSS injection to force the date picker calendar popup to render on top without getting cut off
+                    st.markdown("""
+                        <style>
+                        div[data-baseweb="popover"] {
+                            z-index: 999999 !important;
+                        }
+                        div[data-testid="stContainer"] {
+                            overflow: visible !important;
+                        }
+                        </style>
+                    """, unsafe_allow_html=True)
+                    
+                    with st.container(border=True):
+                        district_val = st.text_input("📍 FORUM JURISDICTION DISTRICT", placeholder="e.g. PRAYAGRAJ", key="f_district", value="" if district_mapped == "_____________________" else district_mapped).upper()
+                        legal_provision = st.selectbox(
+                            "📜 Select Article / Rule Provision Standard", 
+                            ["Article 226 of the Constitution of India (Writ Petition)", 
+                             "Article 227 of the Constitution of India (Misc. Petition)", 
+                             "Section 151 of Civil Procedure Code (Civil Misc.)"], 
+                            key="f_prov"
+                        )
+                        # Added explicit format parameter for strict DD/MM/YYYY alignment
+                        order_date_val = st.date_input(
+                            "📅 SELECT ORDER DATE (CHALLENGED ORDER)", 
+                            key="f_order_date",
+                            format="DD/MM/YYYY"
+                        )
+                        formatted_order_date = order_date_val.strftime("%d-%m-%Y")
+                        st.session_state.persist_order_date = formatted_order_date
+
+
+                # --- RIGHT COLUMN: CAVEATOR OR PETITIONER DETAILS ---
+                with col_right_form:
+                    if active_form == "Caveat Application":
+                        st.markdown("##### 👤 Caveator Details")
+                        with st.container(border=True):
+                            caveator_name_only = st.text_input("Caveator Full Name", placeholder="e.g. NAMAN PANDEY", key="f_caveator_name_only", value="" if c_name_mapped == "_____________________" else c_name_mapped).upper()
+                            caveator_address_only = st.text_input("Caveator Full Address & Attestation", placeholder="e.g. S/O ..., R/O ...", key="f_caveator_address_only", value="" if c_addr_mapped == "_____________________" else c_addr_mapped).upper()
+                    else:
+                        st.markdown("##### 👤 Petitioners / Applicants Stack")
+                        with st.container(border=True):
+                            for i in range(st.session_state.p_count):
+                                val = st.text_input(f"Petitioner No. {i+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_p_name_{i}")
+                                if val: p_names_list.append(val)
+                            if st.button("➕ Add Petitioner Entity", key="add_p_btn", use_container_width=True): 
+                                st.session_state.p_count += 1; st.rerun()
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # --- FULL WIDTH: EXPECTED PETITIONER STACK (ONLY FOR CAVEATS) ---
+                if active_form == "Caveat Application":
+                    st.markdown("##### 👤 Expected Petitioner / Plaintiff Stack")
+                    with st.container(border=True):
+                        for k in range(st.session_state.exp_p_count):
+                            val_ep = st.text_input(f"Expected Petitioner No. {k+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_exp_p_name_{k}")
+                            if val_ep: exp_p_names_list.append(val_ep)
+                        if st.button("➕ Add Expected Petitioner", key="add_exp_p_btn", use_container_width=True):
+                            st.session_state.exp_p_count += 1; st.rerun()
+                    st.markdown("<br>", unsafe_allow_html=True)
+
+                # --- FULL WIDTH LOWER SECTION: EXPECTED OPPOSITE PARTIES ---
+                if active_form == "Caveat Application":
+                    st.markdown("##### 👥 Expected Opposite Parties")
+                else:
+                    st.markdown("##### 👥 Respondents / Defendants Stack")
+                    
                 with st.container(border=True):
                     for j in range(st.session_state.r_count):
                         val = st.text_input(f"Respondent No. {j+1} Name & Corporate Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_r_name_{j}")
                         if val: r_names_list.append(val)
                     if st.button("➕ Add Respondent Entity", key="add_r_btn", use_container_width=True): 
                         st.session_state.r_count += 1; st.rerun()
+                # 🎯 NEW SECTION: Caveator Advocate Professional Profile Registration Box
+                # 🎯 NEW OPTION: Dynamic Extra Counsel / Advocate Stack
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown("##### ⚖️ Retained Caveator Advocate / Counsel Profile Stack")
+                
+                # Initialize counsel counter tracking state safely at the top if not set
+                if "counsel_count" not in st.session_state: 
+                    st.session_state.counsel_count = 1
+                
+                adv_names_list = []
+                adv_rolls_list = []
+                adv_chambers_list = []
+                adv_phones_list = []
 
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button(f"Generate Verified {active_form}", key="btn_gen", use_container_width=True):
-                if p_names_list and r_names_list:
-                    st.success(f"🎉 {active_form} court format has been generated successfully!")
-                    p_formatted = "\n".join(p_names_list)
-                    r_formatted = "\n".join(r_names_list)
+                with st.container(border=True):
+                    for i in range(st.session_state.counsel_count):
+                        st.markdown(f"**🔹 Counsel / Advocate No. {i+1}**")
+                        
+                        # Retaining filled data safely if screen refreshes
+                        mapped_name = st.session_state.get(f"persist_adv_name_{i}", "")
+                        mapped_roll = st.session_state.get(f"persist_adv_roll_{i}", "")
+                        mapped_cham = st.session_state.get(f"persist_adv_chamber_{i}", "")
+                        mapped_phone = st.session_state.get(f"persist_adv_phone_{i}", "")
+                        
+                        # Automatically default the first field to logged-in user name
+                        default_name = f"ADV. {st.session_state.username.upper()}" if i == 0 else ""
+                        
+                        adv_col1, adv_col2 = st.columns(2)
+                        with adv_col1:
+                            adv_name_val = st.text_input(f"Advocate No. {i+1} Full Name", placeholder="e.g. ADV. NAMAN PANDEY", value=mapped_name if mapped_name else default_name, key=f"f_adv_name_{i}").upper()
+                            adv_roll_val = st.text_input(f"Advocate No. {i+1} Roll No.", placeholder="e.g. UP/12345/2026", value=mapped_roll, key=f"f_adv_roll_{i}").upper()
+                        with adv_col2:
+                            adv_chamber_val = st.text_input(f"Chamber / Office Room No.", placeholder="e.g. CHAMBER NO. 45", value=mapped_cham, key=f"f_adv_chamber_{i}").upper()
+                            adv_phone_val = st.text_input(f"Advocate Mobile Number", max_chars=10, placeholder="e.g. 9876543210", value=mapped_phone, key=f"f_adv_phone_{i}").strip()
+                        
+                        if adv_name_val:
+                            adv_names_list.append(adv_name_val)
+                            st.session_state[f"persist_adv_name_{i}"] = adv_name_val
+                        if adv_roll_val: adv_rolls_list.append(adv_roll_val)
+                        if adv_chamber_val: adv_chambers_list.append(adv_chamber_val)
+                        if adv_phone_val: adv_phones_list.append(adv_phone_val)
+                        st.markdown("---")
+                    
+                    # 🎯 The functional button to append an extra advocate row instantly
+                    if st.button("➕ Add Extra Counsel / Advocate", key="add_extra_counsel_btn", use_container_width=True):
+                        st.session_state.counsel_count += 1
+                        st.rerun()
+
+                # Joining all counsel metadata cleanly into a single state string for compile tracking
+                st.session_state.persist_adv_name = "\n".join(adv_names_list)
+
+
+                # --- FULL WIDTH: EDITABLE LEGAL PARAGRAPHS BLOCK ---
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown("##### 📝 Additional Custom Legal Paragraphs / Grounds")
+                with st.container(border=True):
+                    additional_paras_input = st.text_area(
+                        "If you want to append or edit statement paragraphs, modify them directly below:",
+                        key="f_additional_paras",
+                        value=additional_paras_mapped,
+                        height=180
+                    )
+
+                # 🎯 NEW: Side-by-Side Action Grid for Compile and Cancel Toggles
+                st.markdown("<br>", unsafe_allow_html=True)
+                form_action_col1, form_action_col2 = st.columns(2)
+                
+                with form_action_col1:
+                    submit_compile = st.button(f"✨ Compile Document & Generate Live Preview Page", type="primary", use_container_width=True)
+                
+                with form_action_col2:
+                    back_to_hub_lower = st.button("🔙 Cancel & Back to Forum Hub", key="lower_form_back_to_hub_btn", use_container_width=True)
+
+                if submit_compile:
+                    if not district_val:
+                        st.sidebar.warning("⚠️ Processing Denied: Missing Forum Jurisdiction District.")
+                    elif active_form == "Caveat Application" and (not caveator_name_only or not caveator_address_only):
+                        st.sidebar.warning("⚠️ Processing Denied: Please fill both Caveator Name and Address fields.")
+                    elif active_form == "Caveat Application" and not exp_p_names_list:
+                        st.sidebar.warning("⚠️ Processing Denied: Add at least one Expected Petitioner.")
+                    elif active_form != "Caveat Application" and not p_names_list:
+                        st.sidebar.warning("⚠️ Processing Denied: Add at least one Petitioner entity.")
+                    elif not r_names_list:
+                        st.sidebar.warning("⚠️ Processing Denied: Add at least one Expected Opposite Party / Respondent.")
+                    else:
+                        st.session_state.persist_district = district_val
+                        st.session_state.persist_provision = legal_provision
+                        st.session_state.persist_order_date = formatted_order_date
+                        st.session_state.persist_additional_paras = additional_paras_input
+                        if active_form == "Caveat Application":
+                            st.session_state.persist_c_name = caveator_name_only
+                            st.session_state.persist_c_addr = caveator_address_only
+                            st.session_state.persist_adv_name = "\n".join(adv_names_list)
+                            st.session_state.persist_exp_p_formatted = "\n".join([f"{idx+1}. {name}" for idx, name in enumerate(exp_p_names_list)])
+                            st.session_state.persist_r_formatted = "\n".join([f"{idx+1}. {name}" for idx, name in enumerate(r_names_list)])
+                        else:
+                            st.session_state.persist_p_formatted = "\n".join([f"{idx+1}. {name}" for idx, name in enumerate(p_names_list)])
+                            st.session_state.persist_r_formatted = "\n".join([f"{idx+1}. {name}" for idx, name in enumerate(r_names_list)])
+
+                        
+                        st.session_state.canvas_sub_page = "preview"
+                        st.rerun()
+
+                # Action handler logic for lower Cancel navigation trigger
+                if back_to_hub_lower:
+                    st.session_state.active_app_tile = None
+                    st.session_state.canvas_sub_page = "editor"
+                    st.rerun()
+
+            # ====================================================
+            # SUB-PAGE LAYER B: EXPANDED WIDESCREEN PREVIEW PAGE
+            # ====================================================
+            elif st.session_state.canvas_sub_page == "preview":
+                st.markdown("""
+                    <style>
+                    .block-container { max-width: 95% !important; padding-left: 3rem !important; padding-right: 3rem !important; }
+                    
+                    /* 🏛️ LEGAL PREVIEW BLOCK: Set alignment container */
+                    code, pre, .stCode, div[data-testid="stCodeBlock"] pre {
+                        font-family: 'Times New Roman', Times, serif !important; 
+                        font-size: 14pt !important; 
+                        line-height: 1.6 !important;
+                        background-color: #ffffff !important; 
+                        color: #000000 !important; 
+                        border: 1px solid #ddd !important;
+                        padding: 40px !important; 
+                        white-space: pre-wrap !important;
+                        display: block !important;
+                        width: 100% !important;
+                        
+                        /* 🚀 FIXED: Default base aligned to standard text, headings filtered inside final_document_string */
+                        text-align: justify !important;
+                    }
+                    button[data-testid="stCopyButton"] { display: none !important; }
+                    </style>
+                """, unsafe_allow_html=True)
+
+                exp_p_compiled = st.session_state.get("persist_exp_p_formatted", "1. _____________________")
+                r_compiled = st.session_state.get("persist_r_formatted", "1. _____________________")
+                p_compiled = st.session_state.get("persist_p_formatted", "1. _____________________")
+                custom_paras_section = f"\n\n{additional_paras_mapped}" if additional_paras_mapped.strip() else ""
+                
+                if '(' in provision_mapped:
+                    provision_text = provision_mapped.split('(')[0].strip().upper()
+                else:
+                    provision_text = provision_mapped.upper()
+                
+                # 🚀 FIXED: Structured spaces injected to center titles while maintaining left-aligned bullet paragraphs
+                if active_form == "Caveat Application":
+                    final_document_string = f"""                               IN THE HIGH COURT OF JUDICATURE AT ALLAHABAD
+                                                      ***********
+                                      Civil Misc. Caveat Application no.      of 2026
+                (Under section 148-A C.P.C. read with Rule 5 Chapter 22 of High Court Rules)
+
+                                                      On behalf of
+                                        {c_name_mapped}    ---- Applicant
+
+                                      Misc. Petition Civil NO-        of 2026 (civil)
+                                                      (U/A {provision_text})
+
+                                                   DISTRICT – {district_mapped}
+
+{exp_p_compiled}
+- - - - - - - - - - - - - - - - - - - - ---- Proposed Petitioner/plaintiff
+
+                                                        VERSUS
+
+{r_compiled} - - - - - - - - - - - - - - ---- Proposed defendant /Respondent
+
+TO,
+    The Hon`ble chief justice and his other companion judges of the aforesaid court.
+
+    The humble application of the above named applicant most respectfully showeth as under.
+
+1- That in the above noted proposed application, the proposed petitioner may file a application before this Hon`ble court against the order dated {order_date_mapped} passed by Civil Judge (SD), {district_mapped}.{custom_paras_section}
+
+PRAYER:
+It is, therefore, most respectfully prayed that this Hon'ble Court may be pleased to direct that no ex-parte order or ad-interim relief be granted to the Expected Opposite Parties without giving prior due notice and opportunity of being heard to the Caveator or their Counsel.
+
+                                                       FILED BY:
+                                                   ADV. {st.session_state.username.upper()}
+                                            COUNSEL FOR APPLICANT/CAVEATOR
+                                                   DATED: 09-11-2026"""
+                else:
+                    final_document_string = f"""                                     BEFORE THE HON'BLE {st.session_state.selected_court.upper()}
+                                                   DISTRICT: {district_mapped}
+
+IN THE MATTER OF:
+{p_compiled}
+
+                                                        VERSUS
+{r_compiled}
+
+                                APPLICATION FOR {active_form.upper()} UNDER {provision_mapped}."""
+
+                st.markdown(f"### 🏛️ Expanded Workstation Preview Stage: **{active_form}**")
+                
+                act_col1, act_col2 = st.columns(2)
+                with act_col1:
+                    if st.button("⬅ Return to Editor Layout Panel", use_container_width=True):
+                        st.session_state.canvas_sub_page = "editor"
+                        st.rerun()
+                
+                st.markdown("---")
+                st.code(final_document_string, language="text")
+
+                
+                html_formatted_content = f"""
+                <html>
+                <head>
+                    <style>
+                        @page {{ size: A4; margin: 1in; }}
+                        body {{ font-family: 'Times New Roman', Times, serif; font-size: 14pt; padding: 20px; line-height: 1.6; white-space: pre-wrap; color: #000000; }}
+                    </style>
+                </head>
+                <body>{final_document_string.replace('\n', '<br>')}</body>
+                </html>
+                """
+
+                with act_col2:
+                    st.download_button(
+                        label="📥 Download Generated Petition (PDF)",
+                        data=html_formatted_content,
+                        file_name=f"{active_form.lower().replace(' ', '_')}_final.pdf",
+                        mime="text/html",
+                        use_container_width=True,
+                        type="primary"
+                    )
+
+                
