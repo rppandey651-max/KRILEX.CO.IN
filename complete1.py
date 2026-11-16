@@ -1253,17 +1253,59 @@ else:
                             key="ep_section_dropdown"
                         )
 
-                        sec_state_key = f"persist_ep_sec_{selected_sec}"
-                        if sec_state_key not in st.session_state:
-                            st.session_state[sec_state_key] = default_section_templates[selected_sec]
+                        if selected_sec == "1. Index":
+                            import pandas as pd
+                            st.markdown("**Editable Writ Petition Index (Click any cell to edit, or use '+' at the bottom to add rows):**")
+                            
+                            if "persist_ep_index_df" not in st.session_state:
+                                st.session_state.persist_ep_index_df = pd.DataFrame([
+                                    {"Sl. No.": "1.", "Particulars of Documents": "Listing Application / Urgency Application", "Page No.": "1 - 2"},
+                                    {"Sl. No.": "2.", "Particulars of Documents": "Dates and Events (Synopsis)", "Page No.": "3 - 5"},
+                                    {"Sl. No.": "3.", "Particulars of Documents": f"{ep_cat} Misc. Writ Petition", "Page No.": "6 - 18"},
+                                    {"Sl. No.": "4.", "Particulars of Documents": "Stay Application", "Page No.": "19 - 21"},
+                                    {"Sl. No.": "5.", "Particulars of Documents": "Exemption Application", "Page No.": "22 - 23"},
+                                    {"Sl. No.": "6.", "Particulars of Documents": "Affidavit in support of Writ Petition", "Page No.": "24 - 28"},
+                                    {"Sl. No.": "7.", "Particulars of Documents": "ANNEXURE NO. 1: Copy of the Impugned Order", "Page No.": "29 - 32"},
+                                    {"Sl. No.": "8.", "Particulars of Documents": "ID Proof of Deponent (Aadhaar / Voter ID)", "Page No.": "33"},
+                                    {"Sl. No.": "9.", "Particulars of Documents": "Vakalatnama", "Page No.": "34"},
+                                ])
 
-                        edited_sec_content = st.text_area(
-                            f"Editable Content for {selected_sec}:",
-                            value=st.session_state[sec_state_key],
-                            height=240,
-                            key=f"ta_ep_{selected_sec}"
-                        )
-                        st.session_state[sec_state_key] = edited_sec_content
+                            edited_index_df = st.data_editor(
+                                st.session_state.persist_ep_index_df,
+                                num_rows="dynamic",
+                                use_container_width=True,
+                                hide_index=True,
+                                key="ep_index_table_editor"
+                            )
+                            st.session_state.persist_ep_index_df = edited_index_df
+
+                            # Format the edited table automatically for Live Preview & PDF
+                            index_lines = [
+                                f"{'Sl. No.':<8} {'Particulars of Documents':<48} {'Page No.':>10}",
+                                "=" * 70
+                            ]
+                            for _, row in edited_index_df.iterrows():
+                                sl = str(row.get("Sl. No.", "") or "")
+                                part = str(row.get("Particulars of Documents", "") or "")
+                                pg = str(row.get("Page No.", "") or "")
+                                index_lines.append(f"{sl:<8} {part:<48} {pg:>10}")
+                            index_lines.append("=" * 70)
+                            
+                            st.session_state["persist_ep_sec_1. Index"] = "\n".join(index_lines)
+
+                        else:
+                            sec_state_key = f"persist_ep_sec_{selected_sec}"
+                            if sec_state_key not in st.session_state:
+                                st.session_state[sec_state_key] = default_section_templates[selected_sec]
+
+                            edited_sec_content = st.text_area(
+                                f"Editable Content for {selected_sec}:",
+                                value=st.session_state[sec_state_key],
+                                height=240,
+                                key=f"ta_ep_{selected_sec}"
+                            )
+                            st.session_state[sec_state_key] = edited_sec_content
+
 
                     # Default values to avoid missing variable errors
                     district_val = "PRAYAGRAJ"
