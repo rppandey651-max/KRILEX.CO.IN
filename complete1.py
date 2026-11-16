@@ -1226,24 +1226,40 @@ else:
                     st.markdown("<br>", unsafe_allow_html=True)
                     st.markdown("##### 📂 Entire Petition Sections (Select & Edit Content)")
 
+                    include_exemption = st.checkbox(
+                        "Include Exemption Application (Optional - Uncheck if not required for this file)",
+                        value=st.session_state.get("persist_include_exemption", True),
+                        key="f_include_exemption"
+                    )
+                    st.session_state.persist_include_exemption = include_exemption
+
                     petition_sections = [
                         "1. Index",
-                        "2. Dates & Events",
-                        "3. Main Writ Petition",
-                        "4. Stay Application",
-                        "5. Exemption Application",
-                        "6. Affidavit",
-                        "7. Annexures & Vakalatnama"
+                        "2. Stay Application",
                     ]
+                    if include_exemption:
+                        petition_sections.append("3. Exemption Application (Optional)")
+                        petition_sections.extend([
+                            "4. Main Writ Petition",
+                            "5. Annexures",
+                            "6. Affidavit",
+                            "7. Vakalatnama"
+                        ])
+                    else:
+                        petition_sections.extend([
+                            "3. Main Writ Petition",
+                            "4. Annexures",
+                            "5. Affidavit",
+                            "6. Vakalatnama"
+                        ])
 
                     default_section_templates = {
-                        "1. Index": "1. Dates and Events\n2. Main Writ Petition\n3. Stay Application\n4. Exemption Application\n5. Affidavit\n6. Annexure No. 1 (Copy of Impugned Order)\n7. Vakalatnama",
-                        "2. Dates & Events": "Date           Event Description\n01-01-2026  - Impugned order passed by the Respondent Authority.\n10-01-2026  - Petitioner submitted representation before the Authority.",
-                        "3. Main Writ Petition": "IN THE MATTER OF:\n1. Petitioner Name S/o ..., R/o ...\n---- Petitioner(s)\n\nVERSUS\n\n1. State of U.P. & Others\n---- Respondent(s)\n\nBRIEF FACTS:\n1- That the Petitioner is a law-abiding citizen of India.\n\nGROUNDS:\nA. Because the impugned order is arbitrary and violative of Article 14 of the Constitution of India.\n\nPRAYER:\nIt is, therefore, most respectfully prayed that this Hon'ble Court may graciously be pleased to issue a writ, order or direction in the nature of Certiorari quashing the impugned order.",
-                        "4. Stay Application": "1- That the accompanying Writ Petition is being filed before this Hon'ble Court.\n2- That prima facie case and balance of convenience lie in favour of the Petitioner.\n\nPRAYER:\nStay the operation and effect of the impugned order during the pendency of the Writ Petition.",
-                        "5. Exemption Application": "1- That due to urgency, the Petitioner could not obtain the certified copy of the impugned order.\n\nPRAYER:\nExempt the Petitioner from filing the certified copy of the impugned order.",
-                        "6. Affidavit": "I, the Deponent above-named, do hereby solemnly affirm and state on oath as under:\n1- That the Deponent is the Petitioner in the above-noted Writ Petition and is well acquainted with the facts of the case.\n\nVERIFICATION:\nVerified at Prayagraj on this day that the contents of this affidavit are true to my personal knowledge.",
-                        "7. Annexures & Vakalatnama": "ANNEXURE NO. 1: True/Photostat copy of the Impugned Order.\n\nVAKALATNAMA: Executed in favour of Counsel for the Petitioner."
+                        "2. Stay Application": "1- That the accompanying Writ Petition is being filed before this Hon'ble Court.\n2- That prima facie case and balance of convenience lie in favour of the Petitioner.\n\nPRAYER:\nStay the operation and effect of the impugned order during the pendency of the Writ Petition.",
+                        "3. Exemption Application (Optional)": "1- That due to urgency, the Petitioner could not obtain the certified copy of the impugned order.\n\nPRAYER:\nExempt the Petitioner from filing the certified copy of the impugned order.",
+                        "Main Writ Petition": "IN THE MATTER OF:\n1. Petitioner Name S/o ..., R/o ...\n---- Petitioner(s)\n\nVERSUS\n\n1. State of U.P. & Others\n---- Respondent(s)\n\nBRIEF FACTS:\n1- That the Petitioner is a law-abiding citizen of India.\n\nGROUNDS:\nA. Because the impugned order is arbitrary and violative of Article 14 of the Constitution of India.\n\nPRAYER:\nIt is, therefore, most respectfully prayed that this Hon'ble Court may graciously be pleased to issue a writ, order or direction in the nature of Certiorari quashing the impugned order.",
+                        "Annexures": "ANNEXURE NO. 1: True/Photostat copy of the Impugned Order.",
+                        "Affidavit": "I, the Deponent above-named, do hereby solemnly affirm and state on oath as under:\n1- That the Deponent is the Petitioner in the above-noted Writ Petition and is well acquainted with the facts of the case.\n\nVERIFICATION:\nVerified at Prayagraj on this day that the contents of this affidavit are true to my personal knowledge.",
+                        "Vakalatnama": "VAKALATNAMA: Executed in favour of Counsel for the Petitioner."
                     }
 
                     with st.container(border=True):
@@ -1257,18 +1273,24 @@ else:
                             import pandas as pd
                             st.markdown("**Editable Writ Petition Index (Click any cell to edit, or use '+' at the bottom to add rows):**")
                             
-                            if "persist_ep_index_df" not in st.session_state:
-                                st.session_state.persist_ep_index_df = pd.DataFrame([
-                                    {"Sl. No.": "1.", "Particulars of Documents": "Listing Application / Urgency Application", "Page No.": "1 - 2"},
-                                    {"Sl. No.": "2.", "Particulars of Documents": "Dates and Events (Synopsis)", "Page No.": "3 - 5"},
-                                    {"Sl. No.": "3.", "Particulars of Documents": f"{ep_cat} Misc. Writ Petition", "Page No.": "6 - 18"},
-                                    {"Sl. No.": "4.", "Particulars of Documents": "Stay Application", "Page No.": "19 - 21"},
-                                    {"Sl. No.": "5.", "Particulars of Documents": "Exemption Application", "Page No.": "22 - 23"},
-                                    {"Sl. No.": "6.", "Particulars of Documents": "Affidavit in support of Writ Petition", "Page No.": "24 - 28"},
-                                    {"Sl. No.": "7.", "Particulars of Documents": "ANNEXURE NO. 1: Copy of the Impugned Order", "Page No.": "29 - 32"},
-                                    {"Sl. No.": "8.", "Particulars of Documents": "ID Proof of Deponent (Aadhaar / Voter ID)", "Page No.": "33"},
-                                    {"Sl. No.": "9.", "Particulars of Documents": "Vakalatnama", "Page No.": "34"},
+                            # Build default rows based on whether Exemption is checked
+                            if "persist_ep_index_df" not in st.session_state or st.session_state.get("last_exemption_toggle") != include_exemption:
+                                st.session_state.last_exemption_toggle = include_exemption
+                                rows = [
+                                    {"Sl. No.": "1.", "Particulars of Documents": "Stay Application", "Page No.": "1 - 3"},
+                                ]
+                                sl = 2
+                                if include_exemption:
+                                    rows.append({"Sl. No.": f"{sl}.", "Particulars of Documents": "Exemption Application", "Page No.": "4 - 5"})
+                                    sl += 1
+                                rows.extend([
+                                    {"Sl. No.": f"{sl}.", "Particulars of Documents": f"{ep_cat} Misc. Writ Petition", "Page No.": "6 - 18"},
+                                    {"Sl. No.": f"{sl+1}.", "Particulars of Documents": "ANNEXURE NO. 1: Copy of the Impugned Order", "Page No.": "19 - 22"},
+                                    {"Sl. No.": f"{sl+2}.", "Particulars of Documents": "Affidavit in support of Writ Petition", "Page No.": "23 - 26"},
+                                    {"Sl. No.": f"{sl+3}.", "Particulars of Documents": "ID Proof of Deponent (Aadhaar / Voter ID)", "Page No.": "27"},
+                                    {"Sl. No.": f"{sl+4}.", "Particulars of Documents": "Vakalatnama", "Page No.": "28"},
                                 ])
+                                st.session_state.persist_ep_index_df = pd.DataFrame(rows)
 
                             edited_index_df = st.data_editor(
                                 st.session_state.persist_ep_index_df,
@@ -1279,32 +1301,36 @@ else:
                             )
                             st.session_state.persist_ep_index_df = edited_index_df
 
-                            # Format the edited table automatically for Live Preview & PDF
                             index_lines = [
                                 f"{'Sl. No.':<8} {'Particulars of Documents':<48} {'Page No.':>10}",
                                 "=" * 70
                             ]
                             for _, row in edited_index_df.iterrows():
-                                sl = str(row.get("Sl. No.", "") or "")
-                                part = str(row.get("Particulars of Documents", "") or "")
-                                pg = str(row.get("Page No.", "") or "")
-                                index_lines.append(f"{sl:<8} {part:<48} {pg:>10}")
+                                sl_val = str(row.get("Sl. No.", "") or "")
+                                part_val = str(row.get("Particulars of Documents", "") or "")
+                                pg_val = str(row.get("Page No.", "") or "")
+                                index_lines.append(f"{sl_val:<8} {part_val:<48} {pg_val:>10}")
                             index_lines.append("=" * 70)
                             
-                            st.session_state["persist_ep_sec_1. Index"] = "\n".join(index_lines)
+                            st.session_state["persist_ep_sec_Index"] = "\n".join(index_lines)
 
                         else:
-                            sec_state_key = f"persist_ep_sec_{selected_sec}"
+                            # Normalize key name regardless of dynamic numbering (e.g., "Main Writ Petition")
+                            clean_sec_name = selected_sec.split(". ", 1)[-1]
+                            sec_state_key = f"persist_ep_sec_{clean_sec_name}"
                             if sec_state_key not in st.session_state:
-                                st.session_state[sec_state_key] = default_section_templates[selected_sec]
+                                st.session_state[sec_state_key] = default_section_templates.get(
+                                    selected_sec, default_section_templates.get(clean_sec_name, "")
+                                )
 
                             edited_sec_content = st.text_area(
                                 f"Editable Content for {selected_sec}:",
                                 value=st.session_state[sec_state_key],
                                 height=240,
-                                key=f"ta_ep_{selected_sec}"
+                                key=f"ta_ep_{clean_sec_name}"
                             )
                             st.session_state[sec_state_key] = edited_sec_content
+
 
 
                     # Default values to avoid missing variable errors
@@ -1837,22 +1863,27 @@ SPLIT_ROW|DATED: {today_str}|FILED BY:
 COUNSEL FOR APPLICANT / CAVEATOR"""
                 elif active_form == "Entire Petition":
                     ep_cat_mapped = st.session_state.get("persist_ep_category", "Civil").upper()
-                    sections_order = [
-                        "1. Index",
-                        "2. Dates & Events",
-                        "3. Main Writ Petition",
-                        "4. Stay Application",
-                        "5. Exemption Application",
-                        "6. Affidavit",
-                        "7. Annexures & Vakalatnama"
-                    ]
+                    include_exemption_flag = st.session_state.get("persist_include_exemption", True)
+                    
+                    sections_order = ["Index", "Stay Application"]
+                    if include_exemption_flag:
+                        sections_order.append("Exemption Application (Optional)")
+                    sections_order.extend([
+                        "Main Writ Petition",
+                        "Annexures",
+                        "Affidavit",
+                        "Vakalatnama"
+                    ])
+
                     compiled_sections = []
-                    for sec in sections_order:
+                    for idx_num, sec in enumerate(sections_order, start=1):
                         sec_body = st.session_state.get(f"persist_ep_sec_{sec}", "").strip()
                         if sec_body:
-                            compiled_sections.append(f"\n==================== {sec.upper()} ====================\n{sec_body}")
+                            header_title = f"{idx_num}. {sec.replace(' (Optional)', '').upper()}"
+                            compiled_sections.append(f"\n==================== {header_title} ====================\n{sec_body}")
 
                     sections_joined = "\n\n".join(compiled_sections)
+
 
                     final_document_string = f"""IN THE {st.session_state.selected_court.upper()}
 ***********
