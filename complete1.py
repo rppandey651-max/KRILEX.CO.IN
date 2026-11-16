@@ -1197,6 +1197,7 @@ else:
             # ====================================================
             # SUB-PAGE LAYER A: THE CONTENT COMPILER EDITOR VIEW
             # ====================================================
+            if st.session_state.canvas_sub_page == "editor":
                 # =========================================================
                 # ENTIRE PETITION SECTION (STARTS DIRECTLY WITH CIVIL/CRIMINAL)
                 # =========================================================
@@ -1271,317 +1272,241 @@ else:
                     crime_details_list = []
                     p_names_list = ["Petitioner"]
                     r_names_list = ["Respondent"]
-
                 # =========================================================
-                # CAVEAT & OTHER FORMS (EXISTING CODE UNTOUCHED)
+                # CAVEAT & OTHER FORMS
                 # =========================================================
                 else:
-                    # (Indent your existing Caveat/District/Petitioner/Respondent blocks here down to add_r_btn)
+                    # --- TOP SEPARATE BOX FOR CIVIL / CRIMINAL (CAVEAT APPLICATION) ---
+                    if active_form == "Caveat Application":
+                        st.markdown("##### ⚖️ Caveat Case Category")
+                        with st.container(border=True):
+                            saved_cat = st.session_state.get("persist_caveat_category", "Civil")
+                            caveat_category = st.radio(
+                                "Select Caveat Application Type:",
+                                options=["Civil", "Criminal"],
+                                index=0 if saved_cat == "Civil" else 1,
+                                horizontal=True,
+                                key="f_caveat_category"
+                            )
+                            st.session_state.persist_caveat_category = caveat_category
+                        st.markdown("<br>", unsafe_allow_html=True)
 
-            # --- TOP SEPARATE BOX FOR CIVIL / CRIMINAL (CAVEAT APPLICATION) ---
-                if active_form == "Caveat Application":
-                    st.markdown("##### ⚖️ Caveat Case Category")
-                    with st.container(border=True):
-                        saved_cat = st.session_state.get("persist_caveat_category", "Civil")
-                        caveat_category = st.radio(
-                            "Select Caveat Application Type:",
-                            options=["Civil", "Criminal"],
-                            index=0 if saved_cat == "Civil" else 1,
-                            horizontal=True,
-                            key="f_caveat_category"
-                        )
-                        st.session_state.persist_caveat_category = caveat_category
-                    st.markdown("<br>", unsafe_allow_html=True)
-
-                # Create an expanded 50/50 split column layout grid structure 
-                col_left_form, col_right_form = st.columns(2, gap="large")
-                
-                # --- LEFT COLUMN: CASE INFORMATION & DISTRICT PARAMETERS ---
-                with col_left_form:
-                    st.markdown("##### 📍 Case Information Parameters")
+                    # Create an expanded 50/50 split column layout grid structure 
+                    col_left_form, col_right_form = st.columns(2, gap="large")
                     
-                    st.markdown("""
-                        <style>
-                        div[data-baseweb="popover"] {
-                            z-index: 999999 !important;
-                            top: 120px !important;
-                        }
-                        div[data-baseweb="calendar"] header {
-                            visibility: visible !important;
-                            display: flex !important;
-                            background-color: #f8fafc !important;
-                            padding: 8px !important;
-                        }
-                        div[data-baseweb="calendar"] button svg {
-                            fill: #000000 !important;
-                            visibility: visible !important;
-                        }
-                        div[data-testid="stContainer"] {
-                            overflow: visible !important;
-                        }
-                        </style>
-                    """, unsafe_allow_html=True)
-                    
-                    with st.container(border=True):
-                        district_val = st.text_input("📍 FORUM JURISDICTION DISTRICT", placeholder="e.g. PRAYAGRAJ", key="f_district", value="" if district_mapped == "_____________________" else district_mapped).upper()
-                        legal_provision = st.selectbox(
-                            "📜 Select Article / Rule Provision Standard", 
-                            ["Article 226 of the Constitution of India (Writ Petition)", 
-                             "Article 227 of the Constitution of India (Misc. Petition)", 
-                             "Section 151 of Civil Procedure Code (Civil Misc.)"], 
-                            key="f_prov"
-                        )
-                        from datetime import date
-                        order_date_val = st.date_input(
-                            "📅 SELECT ORDER DATE (CHALLENGED ORDER)", 
-                            value=date.today(),
-                            min_value=date(1950, 1, 1),
-                            max_value=date(2050, 12, 31),
-                            key="f_order_date",
-                            format="DD/MM/YYYY"
-                        )
-
-                        formatted_order_date = order_date_val.strftime("%d-%m-%Y")
-                        st.session_state.persist_order_date = formatted_order_date
-
-                    # 🎯 UPDATED: CASE CRIME DETAILS (Alag Crime No & Year, Bina Thana/District ke)
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.markdown("##### 🚔 Case Crime Details")
-
-                    if "crime_count" not in st.session_state:
-                        st.session_state.crime_count = 1
-
-                    crime_details_list = []
-
-                    with st.container(border=True):
-                        for idx in range(st.session_state.crime_count):
-                            if st.session_state.crime_count > 1:
-                                st.markdown(f"**🔹 Crime Detail No. {idx+1}**")
-
-                            c_col1, c_col2 = st.columns(2)
-                            with c_col1:
-                                crime_no_val = st.text_input(
-                                    "Case Crime No.",
-                                    placeholder="e.g. 0145",
-                                    value=st.session_state.get(f"persist_crime_no_{idx}", ""),
-                                    key=f"f_crime_no_{idx}"
-                                ).upper()
-
-                                sections_val = st.text_input(
-                                    "Under Sections",
-                                    placeholder="e.g. 115(2), 352 BNS",
-                                    value=st.session_state.get(f"persist_sections_{idx}", ""),
-                                    key=f"f_under_sections_{idx}"
-                                ).upper()
-
-                            with c_col2:
-                                year_options = [str(y) for y in range(2026, 1989, -1)]
-                                saved_year = st.session_state.get(f"persist_crime_year_{idx}", "2026")
-                                default_year_idx = year_options.index(saved_year) if saved_year in year_options else 0
-
-                                crime_year_val = st.selectbox(
-                                    "Crime Year",
-                                    options=year_options,
-                                    index=default_year_idx,
-                                    key=f"f_crime_year_{idx}"
-                                )
-
-                                nature_val = st.selectbox(
-                                    "Nature of Case / Offence",
-                                    [
-                                        "Criminal / FIR",
-                                        "Cognizable Offence",
-                                        "Non-Cognizable (NCR)",
-                                        "Civil Nature / Dispute",
-                                        "Matrimonial / Domestic",
-                                        "Financial / Fraud",
-                                        "Other"
-                                    ],
-                                    key=f"f_crime_nature_{idx}"
-                                )
-
-                            # Full width dropdown for Relief / Writ Type
-                            writ_relief_val = st.selectbox(
-                                "Relief / Writ Type",
-                                [
-                                    "Quashing of FIR / Proceedings",
-                                    "Mandamus (Fair Investigation / Protection)",
-                                ],
-                                key=f"f_writ_relief_{idx}"
+                    # --- LEFT COLUMN: CASE INFORMATION & DISTRICT PARAMETERS ---
+                    with col_left_form:
+                        st.markdown("##### 📍 Case Information Parameters")
+                        
+                        st.markdown("""
+                            <style>
+                            div[data-baseweb="popover"] {
+                                z-index: 999999 !important;
+                                top: 120px !important;
+                            }
+                            div[data-baseweb="calendar"] header {
+                                visibility: visible !important;
+                                display: flex !important;
+                                background-color: #f8fafc !important;
+                                padding: 8px !important;
+                            }
+                            div[data-baseweb="calendar"] button svg {
+                                fill: #000000 !important;
+                                visibility: visible !important;
+                            }
+                            div[data-testid="stContainer"] {
+                                overflow: visible !important;
+                            }
+                            </style>
+                        """, unsafe_allow_html=True)
+                        
+                        with st.container(border=True):
+                            district_val = st.text_input("📍 FORUM JURISDICTION DISTRICT", placeholder="e.g. PRAYAGRAJ", key="f_district", value="" if district_mapped == "_____________________" else district_mapped).upper()
+                            legal_provision = st.selectbox(
+                                "📜 Select Article / Rule Provision Standard", 
+                                ["Article 226 of the Constitution of India (Writ Petition)", 
+                                 "Article 227 of the Constitution of India (Misc. Petition)", 
+                                 "Section 151 of Civil Procedure Code (Civil Misc.)"], 
+                                key="f_prov"
+                            )
+                            from datetime import date
+                            order_date_val = st.date_input(
+                                "📅 SELECT ORDER DATE (CHALLENGED ORDER)", 
+                                value=date.today(),
+                                min_value=date(1950, 1, 1),
+                                max_value=date(2050, 12, 31),
+                                key="f_order_date",
+                                format="DD/MM/YYYY"
                             )
 
-                            # Session mein save rakhein taaki refresh par data na ude
-                            st.session_state[f"persist_crime_no_{idx}"] = crime_no_val
-                            st.session_state[f"persist_crime_year_{idx}"] = crime_year_val
-                            st.session_state[f"persist_sections_{idx}"] = sections_val
+                            formatted_order_date = order_date_val.strftime("%d-%m-%Y")
+                            st.session_state.persist_order_date = formatted_order_date
 
-                            if crime_no_val or crime_year_val or sections_val:
-                                crime_details_list.append({
-                                    "crime_no": crime_no_val,
-                                    "crime_year": crime_year_val,
-                                    "sections": sections_val,
-                                    "nature": nature_val,
-                                    "relief": writ_relief_val
-                                })
+                        # CASE CRIME DETAILS
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.markdown("##### 🚔 Case Crime Details")
 
-                            if idx < st.session_state.crime_count - 1:
-                                st.markdown("---")
+                        if "crime_count" not in st.session_state:
+                            st.session_state.crime_count = 1
 
-                        # ➕ Plus button to add another Crime Detail entry
-                        if st.button("➕ Add Another Crime Detail", key="add_crime_detail_btn", use_container_width=True):
-                            st.session_state.crime_count += 1
-                            st.rerun()
+                        crime_details_list = []
 
-
-
-                # --- RIGHT COLUMN: CAVEATOR OR PETITIONER DETAILS ---
-                with col_right_form:
-                    if active_form == "Caveat Application":
-                        st.markdown("##### 👤 Caveator Details")
-                        if "caveator_count" not in st.session_state:
-                            st.session_state.caveator_count = 1
-                        
-                        caveators_list = []
                         with st.container(border=True):
-                            for c_idx in range(st.session_state.caveator_count):
-                                if st.session_state.caveator_count > 1:
-                                    st.markdown(f"**🔹 Caveator No. {c_idx+1}**")
-                                
-                                default_cname = "" if (c_idx > 0 or c_name_mapped == "_____________________") else c_name_mapped
-                                default_caddr = "" if (c_idx > 0 or c_addr_mapped == "_____________________") else c_addr_mapped
-                                
-                                c_name_i = st.text_input(
-                                    f"Caveator No. {c_idx+1} Full Name",
-                                    placeholder="e.g. NAMAN PANDEY",
-                                    value=st.session_state.get(f"persist_cav_name_{c_idx}", default_cname),
-                                    key=f"f_caveator_name_{c_idx}"
-                                ).upper()
-                                
-                                c_addr_i = st.text_input(
-                                    f"Caveator No. {c_idx+1} Full Address & Attestation",
-                                    placeholder="e.g. S/O ..., R/O ...",
-                                    value=st.session_state.get(f"persist_cav_addr_{c_idx}", default_caddr),
-                                    key=f"f_caveator_addr_{c_idx}"
-                                ).upper()
-                                
-                                st.session_state[f"persist_cav_name_{c_idx}"] = c_name_i
-                                st.session_state[f"persist_cav_addr_{c_idx}"] = c_addr_i
-                                
-                                if c_name_i and c_addr_i:
-                                    caveators_list.append((c_name_i, c_addr_i))
-                                
-                                if c_idx < st.session_state.caveator_count - 1:
+                            for idx in range(st.session_state.crime_count):
+                                if st.session_state.crime_count > 1:
+                                    st.markdown(f"**🔹 Crime Detail No. {idx+1}**")
+
+                                c_col1, c_col2 = st.columns(2)
+                                with c_col1:
+                                    crime_no_val = st.text_input(
+                                        "Case Crime No.",
+                                        placeholder="e.g. 0145",
+                                        value=st.session_state.get(f"persist_crime_no_{idx}", ""),
+                                        key=f"f_crime_no_{idx}"
+                                    ).upper()
+
+                                    sections_val = st.text_input(
+                                        "Under Sections",
+                                        placeholder="e.g. 115(2), 352 BNS",
+                                        value=st.session_state.get(f"persist_sections_{idx}", ""),
+                                        key=f"f_under_sections_{idx}"
+                                    ).upper()
+
+                                with c_col2:
+                                    year_options = [str(y) for y in range(2026, 1989, -1)]
+                                    saved_year = st.session_state.get(f"persist_crime_year_{idx}", "2026")
+                                    default_year_idx = year_options.index(saved_year) if saved_year in year_options else 0
+
+                                    crime_year_val = st.selectbox(
+                                        "Crime Year",
+                                        options=year_options,
+                                        index=default_year_idx,
+                                        key=f"f_crime_year_{idx}"
+                                    )
+
+                                    nature_val = st.selectbox(
+                                        "Nature of Case / Offence",
+                                        [
+                                            "Criminal / FIR",
+                                            "Cognizable Offence",
+                                            "Non-Cognizable (NCR)",
+                                            "Civil Nature / Dispute",
+                                            "Matrimonial / Domestic",
+                                            "Financial / Fraud",
+                                            "Other"
+                                        ],
+                                        key=f"f_crime_nature_{idx}"
+                                    )
+
+                                writ_relief_val = st.selectbox(
+                                    "Relief / Writ Type",
+                                    [
+                                        "Quashing of FIR / Proceedings",
+                                        "Mandamus (Fair Investigation / Protection)",
+                                    ],
+                                    key=f"f_writ_relief_{idx}"
+                                )
+
+                                st.session_state[f"persist_crime_no_{idx}"] = crime_no_val
+                                st.session_state[f"persist_crime_year_{idx}"] = crime_year_val
+                                st.session_state[f"persist_sections_{idx}"] = sections_val
+
+                                if crime_no_val or crime_year_val or sections_val:
+                                    crime_details_list.append({
+                                        "crime_no": crime_no_val,
+                                        "crime_year": crime_year_val,
+                                        "sections": sections_val,
+                                        "nature": nature_val,
+                                        "relief": writ_relief_val
+                                    })
+
+                                if idx < st.session_state.crime_count - 1:
                                     st.markdown("---")
-                                    
-                            if st.button("➕ Add Another Caveator", key="add_caveator_btn", use_container_width=True):
-                                st.session_state.caveator_count += 1
+
+                            if st.button("➕ Add Another Crime Detail", key="add_crime_detail_btn", use_container_width=True):
+                                st.session_state.crime_count += 1
                                 st.rerun()
+                    # --- RIGHT COLUMN: CAVEATOR OR PETITIONER DETAILS ---
+                    with col_right_form:
+                        if active_form == "Caveat Application":
+                            st.markdown("##### 👤 Caveator Details")
+                            if "caveator_count" not in st.session_state:
+                                st.session_state.caveator_count = 1
+                            
+                            caveators_list = []
+                            with st.container(border=True):
+                                for c_idx in range(st.session_state.caveator_count):
+                                    if st.session_state.caveator_count > 1:
+                                        st.markdown(f"**🔹 Caveator No. {c_idx+1}**")
+                                    
+                                    default_cname = "" if (c_idx > 0 or c_name_mapped == "_____________________") else c_name_mapped
+                                    default_caddr = "" if (c_idx > 0 or c_addr_mapped == "_____________________") else c_addr_mapped
+                                    
+                                    c_name_i = st.text_input(
+                                        f"Caveator No. {c_idx+1} Full Name",
+                                        placeholder="e.g. NAMAN PANDEY",
+                                        value=st.session_state.get(f"persist_cav_name_{c_idx}", default_cname),
+                                        key=f"f_caveator_name_{c_idx}"
+                                    ).upper()
+                                    
+                                    c_addr_i = st.text_input(
+                                        f"Caveator No. {c_idx+1} Full Address & Attestation",
+                                        placeholder="e.g. S/O ..., R/O ...",
+                                        value=st.session_state.get(f"persist_cav_addr_{c_idx}", default_caddr),
+                                        key=f"f_caveator_addr_{c_idx}"
+                                    ).upper()
+                                    
+                                    st.session_state[f"persist_cav_name_{c_idx}"] = c_name_i
+                                    st.session_state[f"persist_cav_addr_{c_idx}"] = c_addr_i
+                                    
+                                    if c_name_i and c_addr_i:
+                                        caveators_list.append((c_name_i, c_addr_i))
+                                    
+                                    if c_idx < st.session_state.caveator_count - 1:
+                                        st.markdown("---")
+                                        
+                                if st.button("➕ Add Another Caveator", key="add_caveator_btn", use_container_width=True):
+                                    st.session_state.caveator_count += 1
+                                    st.rerun()
 
-                    else:
-                        st.markdown("##### 👤 Petitioners / Applicants Stack")
-                        with st.container(border=True):
-                            for i in range(st.session_state.p_count):
-                                val = st.text_input(f"Petitioner No. {i+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_p_name_{i}")
-                                if val: p_names_list.append(val)
-                            if st.button("➕ Add Petitioner Entity", key="add_p_btn", use_container_width=True): 
-                                st.session_state.p_count += 1; st.rerun()
-                # =========================================================
-                # ENTIRE PETITION ONLY (CAVEAT SECTION UNTOUCHED)
-                # =========================================================
-                if active_form == "Entire Petition":
-                    if st.session_state.selected_court == "--- Choose Jurisdiction ---":
-                        st.error("🚨 Jurisdiction Required: Please select a Court / Jurisdiction from the top dropdown bar before proceeding.")
-                        if st.button("🔙 Back to Dashboard", key="ep_gate_back_btn"):
-                            st.session_state.active_app_tile = None
-                            st.rerun()
-                        st.stop()
+                        else:
+                            st.markdown("##### 👤 Petitioners / Applicants Stack")
+                            with st.container(border=True):
+                                for i in range(st.session_state.p_count):
+                                    val = st.text_input(f"Petitioner No. {i+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_p_name_{i}")
+                                    if val: p_names_list.append(val)
+                                if st.button("➕ Add Petitioner Entity", key="add_p_btn", use_container_width=True): 
+                                    st.session_state.p_count += 1; st.rerun()
 
                     st.markdown("<br>", unsafe_allow_html=True)
-                    st.markdown("##### ⚖️ Writ Petition Category")
-                    with st.container(border=True):
-                        ep_cat = st.radio(
-                            "Select Petition Nature:",
-                            options=["Civil", "Criminal"],
-                            index=0 if st.session_state.get("persist_ep_category", "Civil") == "Civil" else 1,
-                            horizontal=True,
-                            key="f_ep_category"
-                        )
-                        st.session_state.persist_ep_category = ep_cat
-
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.markdown("##### 📂 Entire Petition Sections (Select & Edit Content)")
-
-                    petition_sections = [
-                        "1. Index",
-                        "2. Dates & Events",
-                        "3. Main Writ Petition",
-                        "4. Stay Application",
-                        "5. Exemption Application",
-                        "6. Affidavit",
-                        "7. Annexures & Vakalatnama"
-                    ]
-
-                    default_section_templates = {
-                        "1. Index": "1. Dates and Events\n2. Main Writ Petition\n3. Stay Application\n4. Exemption Application\n5. Affidavit\n6. Annexure No. 1 (Copy of Impugned Order)\n7. Vakalatnama",
-                        "2. Dates & Events": "Date           Event Description\n01-01-2026  - Impugned order passed by the Respondent Authority.\n10-01-2026  - Petitioner submitted representation before the Authority.",
-                        "3. Main Writ Petition": "BRIEF FACTS:\n1- That the Petitioner is a law-abiding citizen of India.\n\nGROUNDS:\nA. Because the impugned order is arbitrary and violative of Article 14 of the Constitution of India.\n\nPRAYER:\nIt is, therefore, most respectfully prayed that this Hon'ble Court may graciously be pleased to issue a writ, order or direction in the nature of Certiorari quashing the impugned order.",
-                        "4. Stay Application": "1- That the accompanying Writ Petition is being filed before this Hon'ble Court.\n2- That prima facie case and balance of convenience lie in favour of the Petitioner.\n\nPRAYER:\nStay the operation and effect of the impugned order during the pendency of the Writ Petition.",
-                        "5. Exemption Application": "1- That due to urgency, the Petitioner could not obtain the certified copy of the impugned order.\n\nPRAYER:\nExempt the Petitioner from filing the certified copy of the impugned order.",
-                        "6. Affidavit": "I, the Deponent above-named, do hereby solemnly affirm and state on oath as under:\n1- That the Deponent is the Petitioner in the above-noted Writ Petition and is well acquainted with the facts of the case.\n\nVERIFICATION:\nVerified at Prayagraj on this day that the contents of this affidavit are true to my personal knowledge.",
-                        "7. Annexures & Vakalatnama": "ANNEXURE NO. 1: True/Photostat copy of the Impugned Order.\n\nVAKALATNAMA: Executed in favour of Counsel for the Petitioner."
-                    }
-
-                    with st.container(border=True):
-                        selected_sec = st.selectbox(
-                            "Select Section to View / Edit:",
-                            options=petition_sections,
-                            key="ep_section_dropdown"
-                        )
-
-                        sec_state_key = f"persist_ep_sec_{selected_sec}"
-                        if sec_state_key not in st.session_state:
-                            st.session_state[sec_state_key] = default_section_templates[selected_sec]
-
-                        edited_sec_content = st.text_area(
-                            f"Editable Content for {selected_sec}:",
-                            value=st.session_state[sec_state_key],
-                            height=220,
-                            key=f"ta_ep_{selected_sec}"
-                        )
-                        st.session_state[sec_state_key] = edited_sec_content
-
-
-                st.markdown("<br>", unsafe_allow_html=True)
-                
-                # --- FULL WIDTH: EXPECTED PETITIONER STACK (ONLY FOR CAVEATS) ---
-                if active_form == "Caveat Application":
-                    st.markdown("##### 👤 Expected Petitioner / Plaintiff Stack")
-                    with st.container(border=True):
-                        for k in range(st.session_state.exp_p_count):
-                            val_ep = st.text_input(f"Expected Petitioner No. {k+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_exp_p_name_{k}")
-                            if val_ep: exp_p_names_list.append(val_ep)
-                        if st.button("➕ Add Expected Petitioner", key="add_exp_p_btn", use_container_width=True):
-                            st.session_state.exp_p_count += 1; st.rerun()
-                    st.markdown("<br>", unsafe_allow_html=True)
-
-                # --- FULL WIDTH LOWER SECTION: EXPECTED OPPOSITE PARTIES ---
-                if active_form == "Caveat Application":
-                    st.markdown("##### 👥 Expected Opposite Parties")
-                else:
-                    st.markdown("##### 👥 Respondents / Defendants Stack")
                     
-                with st.container(border=True):
-                    for j in range(st.session_state.r_count):
-                        val = st.text_input(f"Respondent No. {j+1} Name & Corporate Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_r_name_{j}")
-                        if val: r_names_list.append(val)
-                    if st.button("➕ Add Respondent Entity", key="add_r_btn", use_container_width=True): 
-                        st.session_state.r_count += 1; st.rerun()
-                # 🎯 NEW SECTION: Caveator Advocate Professional Profile Registration Box
-                # 🎯 NEW OPTION: Dynamic Extra Counsel / Advocate Stack
+                    # --- FULL WIDTH: EXPECTED PETITIONER STACK (ONLY FOR CAVEATS) ---
+                    if active_form == "Caveat Application":
+                        st.markdown("##### 👤 Expected Petitioner / Plaintiff Stack")
+                        with st.container(border=True):
+                            for k in range(st.session_state.exp_p_count):
+                                val_ep = st.text_input(f"Expected Petitioner No. {k+1} Name & Full Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_exp_p_name_{k}")
+                                if val_ep: exp_p_names_list.append(val_ep)
+                            if st.button("➕ Add Expected Petitioner", key="add_exp_p_btn", use_container_width=True):
+                                st.session_state.exp_p_count += 1; st.rerun()
+                        st.markdown("<br>", unsafe_allow_html=True)
+
+                    # --- FULL WIDTH LOWER SECTION: EXPECTED OPPOSITE PARTIES ---
+                    if active_form == "Caveat Application":
+                        st.markdown("##### 👥 Expected Opposite Parties")
+                    else:
+                        st.markdown("##### 👥 Respondents / Defendants Stack")
+                        
+                    with st.container(border=True):
+                        for j in range(st.session_state.r_count):
+                            val = st.text_input(f"Respondent No. {j+1} Name & Corporate Attestation", placeholder="Name S/o ..., R/o ...", key=f"f_r_name_{j}")
+                            if val: r_names_list.append(val)
+                        if st.button("➕ Add Respondent Entity", key="add_r_btn", use_container_width=True): 
+                            st.session_state.r_count += 1; st.rerun()
+                # COMMON SECTIONS FOR ALL FORMS (ADVOCATE, DATE, PARAS, BUTTONS)
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown("##### ⚖️ Retained Caveator Advocate / Counsel Profile Stack")
                 
-                # Initialize counsel counter tracking state safely at the top if not set
                 if "counsel_count" not in st.session_state: 
                     st.session_state.counsel_count = 1
                 
@@ -1594,13 +1519,11 @@ else:
                     for i in range(st.session_state.counsel_count):
                         st.markdown(f"**🔹 Counsel / Advocate No. {i+1}**")
                         
-                        # Retaining filled data safely if screen refreshes
                         mapped_name = st.session_state.get(f"persist_adv_name_{i}", "")
                         mapped_roll = st.session_state.get(f"persist_adv_roll_{i}", "")
                         mapped_cham = st.session_state.get(f"persist_adv_chamber_{i}", "")
                         mapped_phone = st.session_state.get(f"persist_adv_phone_{i}", "")
                         
-                        # Automatically default the first field to logged-in user name
                         default_name = f"ADV. {st.session_state.username.upper()}" if i == 0 else ""
                         
                         adv_col1, adv_col2 = st.columns(2)
@@ -1619,13 +1542,12 @@ else:
                         if adv_phone_val: adv_phones_list.append(adv_phone_val)
                         st.markdown("---")
                     
-                    # 🎯 The functional button to append an extra advocate row instantly
                     if st.button("➕ Add Extra Counsel / Advocate", key="add_extra_counsel_btn", use_container_width=True):
                         st.session_state.counsel_count += 1
                         st.rerun()
 
-                # Joining all counsel metadata cleanly into a single state string for compile tracking
                 st.session_state.persist_adv_name = "\n".join(adv_names_list)
+
                 # --- FILING / CAVEAT DATE BOX ---
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown("##### 📅 Filing / Caveat Date")
@@ -1666,7 +1588,6 @@ else:
                                     spoken_text = recognizer.recognize_google(audio_data, language="en-IN")
                                     
                                     current_txt = st.session_state.f_additional_paras.rstrip()
-                                    # Automatically detect last paragraph number and append on a new numbered line
                                     nums = re.findall(r'(?:^|\n)(\d+)-', current_txt)
                                     if nums:
                                         next_num = int(nums[-1]) + 1
@@ -1689,7 +1610,6 @@ else:
                         height=180
                     )
                     st.session_state.persist_additional_paras = additional_paras_input
-
                     import streamlit.components.v1 as secure_bridge_components
                     auto_number_js = """
                     <script>
@@ -1716,7 +1636,6 @@ else:
                                         const insertText = `\n\n${nextNum}- `;
                                         const newValue = textBefore + insertText + textAfter;
                                         
-                                        // Use native React value setter so Streamlit state locks the new line permanently
                                         const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
                                         nativeSetter.call(this, newValue);
                                         this.selectionStart = this.selectionEnd = pos + insertText.length;
@@ -1730,10 +1649,7 @@ else:
                     """
                     secure_bridge_components.html(auto_number_js, height=0)
 
-
-
-
-                # 🎯 NEW: Side-by-Side Action Grid for Compile and Cancel Toggles
+                # Side-by-Side Action Grid for Compile and Cancel Toggles
                 st.markdown("<br>", unsafe_allow_html=True)
                 form_action_col1, form_action_col2 = st.columns(2)
                 
@@ -1742,13 +1658,13 @@ else:
                 
                 with form_action_col2:
                     back_to_hub_lower = st.button("🔙 Cancel & Back to Forum Hub", key="lower_form_back_to_hub_btn", use_container_width=True)
+                
                 if submit_compile:
                     if active_form == "Entire Petition":
                         st.session_state.canvas_sub_page = "preview"
                         st.rerun()
                     elif not district_val:
                         st.sidebar.warning("⚠️ Processing Denied: Missing Forum Jurisdiction District.")
-
                     elif active_form == "Caveat Application" and not caveators_list:
                         st.sidebar.warning("⚠️ Processing Denied: Please fill at least one Caveator's Name and Address.")
                     elif active_form == "Caveat Application" and not exp_p_names_list:
@@ -1784,7 +1700,6 @@ else:
                         st.session_state.canvas_sub_page = "preview"
                         st.rerun()
 
-                # Action handler logic for lower Cancel navigation trigger
                 if back_to_hub_lower:
                     st.session_state.active_app_tile = None
                     st.session_state.canvas_sub_page = "editor"
