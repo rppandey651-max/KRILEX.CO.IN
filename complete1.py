@@ -24,9 +24,28 @@ st.markdown("""
     div[data-testid="stSidebar"] {
         background-color: #F0F2F6 !important;
     }
-    /* Hide Deploy Button and Header */
+    /* Hide Deploy Button and Top Header Only (Calendar Header Safe) */
     .stAppDeployButton {display: none !important;}
-    header {visibility: hidden;}
+    header[data-testid="stHeader"] {visibility: hidden;}
+    
+    /* Calendar Header, Month/Year Dropdown aur Arrows ko saaf dikhane ke liye */
+    div[data-baseweb="calendar"] header {
+        visibility: visible !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background-color: #F8FAFC !important;
+        color: #0F172A !important;
+        padding: 8px 10px !important;
+        border-bottom: 1px solid #E2E8F0 !important;
+    }
+    div[data-baseweb="calendar"] button,
+    div[data-baseweb="calendar"] button svg,
+    div[data-baseweb="calendar"] [role="button"] {
+        visibility: visible !important;
+        color: #0F172A !important;
+        fill: #0F172A !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -1243,11 +1262,16 @@ else:
                              "Section 151 of Civil Procedure Code (Civil Misc.)"], 
                             key="f_prov"
                         )
+                        from datetime import date
                         order_date_val = st.date_input(
                             "📅 SELECT ORDER DATE (CHALLENGED ORDER)", 
+                            value=date.today(),
+                            min_value=date(1950, 1, 1),
+                            max_value=date(2050, 12, 31),
                             key="f_order_date",
                             format="DD/MM/YYYY"
                         )
+
                         formatted_order_date = order_date_val.strftime("%d-%m-%Y")
                         st.session_state.persist_order_date = formatted_order_date
 
@@ -1476,9 +1500,12 @@ else:
                     filing_date_val = st.date_input(
                         "Select Caveat / Filing Date (Will appear opposite to FILED BY)",
                         value=st.session_state.get("persist_filing_date_obj", date.today()),
+                        min_value=date(1950, 1, 1),
+                        max_value=date(2050, 12, 31),
                         format="DD/MM/YYYY",
                         key="f_filing_date"
                     )
+
                     st.session_state.persist_filing_date_obj = filing_date_val
                     st.session_state.persist_filing_date = filing_date_val.strftime("%d-%m-%Y")
 
