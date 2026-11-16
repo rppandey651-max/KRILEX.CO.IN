@@ -1416,6 +1416,71 @@ else:
                                 if val: p_names_list.append(val)
                             if st.button("➕ Add Petitioner Entity", key="add_p_btn", use_container_width=True): 
                                 st.session_state.p_count += 1; st.rerun()
+                # =========================================================
+                # ENTIRE PETITION ONLY (CAVEAT SECTION UNTOUCHED)
+                # =========================================================
+                if active_form == "Entire Petition":
+                    if st.session_state.selected_court == "--- Choose Jurisdiction ---":
+                        st.error("🚨 Jurisdiction Required: Please select a Court / Jurisdiction from the top dropdown bar before proceeding.")
+                        if st.button("🔙 Back to Dashboard", key="ep_gate_back_btn"):
+                            st.session_state.active_app_tile = None
+                            st.rerun()
+                        st.stop()
+
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown("##### ⚖️ Writ Petition Category")
+                    with st.container(border=True):
+                        ep_cat = st.radio(
+                            "Select Petition Nature:",
+                            options=["Civil", "Criminal"],
+                            index=0 if st.session_state.get("persist_ep_category", "Civil") == "Civil" else 1,
+                            horizontal=True,
+                            key="f_ep_category"
+                        )
+                        st.session_state.persist_ep_category = ep_cat
+
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown("##### 📂 Entire Petition Sections (Select & Edit Content)")
+
+                    petition_sections = [
+                        "1. Index",
+                        "2. Dates & Events",
+                        "3. Main Writ Petition",
+                        "4. Stay Application",
+                        "5. Exemption Application",
+                        "6. Affidavit",
+                        "7. Annexures & Vakalatnama"
+                    ]
+
+                    default_section_templates = {
+                        "1. Index": "1. Dates and Events\n2. Main Writ Petition\n3. Stay Application\n4. Exemption Application\n5. Affidavit\n6. Annexure No. 1 (Copy of Impugned Order)\n7. Vakalatnama",
+                        "2. Dates & Events": "Date           Event Description\n01-01-2026  - Impugned order passed by the Respondent Authority.\n10-01-2026  - Petitioner submitted representation before the Authority.",
+                        "3. Main Writ Petition": "BRIEF FACTS:\n1- That the Petitioner is a law-abiding citizen of India.\n\nGROUNDS:\nA. Because the impugned order is arbitrary and violative of Article 14 of the Constitution of India.\n\nPRAYER:\nIt is, therefore, most respectfully prayed that this Hon'ble Court may graciously be pleased to issue a writ, order or direction in the nature of Certiorari quashing the impugned order.",
+                        "4. Stay Application": "1- That the accompanying Writ Petition is being filed before this Hon'ble Court.\n2- That prima facie case and balance of convenience lie in favour of the Petitioner.\n\nPRAYER:\nStay the operation and effect of the impugned order during the pendency of the Writ Petition.",
+                        "5. Exemption Application": "1- That due to urgency, the Petitioner could not obtain the certified copy of the impugned order.\n\nPRAYER:\nExempt the Petitioner from filing the certified copy of the impugned order.",
+                        "6. Affidavit": "I, the Deponent above-named, do hereby solemnly affirm and state on oath as under:\n1- That the Deponent is the Petitioner in the above-noted Writ Petition and is well acquainted with the facts of the case.\n\nVERIFICATION:\nVerified at Prayagraj on this day that the contents of this affidavit are true to my personal knowledge.",
+                        "7. Annexures & Vakalatnama": "ANNEXURE NO. 1: True/Photostat copy of the Impugned Order.\n\nVAKALATNAMA: Executed in favour of Counsel for the Petitioner."
+                    }
+
+                    with st.container(border=True):
+                        selected_sec = st.selectbox(
+                            "Select Section to View / Edit:",
+                            options=petition_sections,
+                            key="ep_section_dropdown"
+                        )
+
+                        sec_state_key = f"persist_ep_sec_{selected_sec}"
+                        if sec_state_key not in st.session_state:
+                            st.session_state[sec_state_key] = default_section_templates[selected_sec]
+
+                        edited_sec_content = st.text_area(
+                            f"Editable Content for {selected_sec}:",
+                            value=st.session_state[sec_state_key],
+                            height=220,
+                            key=f"ta_ep_{selected_sec}"
+                        )
+                        st.session_state[sec_state_key] = edited_sec_content
+
 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
@@ -1740,6 +1805,45 @@ PRAYER:
 SPLIT_ROW|DATED: {today_str}|FILED BY:
 {adv_signature_text}
 COUNSEL FOR APPLICANT / CAVEATOR"""
+                elif active_form == "Entire Petition":
+                    ep_cat_mapped = st.session_state.get("persist_ep_category", "Civil").upper()
+                    sections_order = [
+                        "1. Index",
+                        "2. Dates & Events",
+                        "3. Main Writ Petition",
+                        "4. Stay Application",
+                        "5. Exemption Application",
+                        "6. Affidavit",
+                        "7. Annexures & Vakalatnama"
+                    ]
+                    compiled_sections = []
+                    for sec in sections_order:
+                        sec_body = st.session_state.get(f"persist_ep_sec_{sec}", "").strip()
+                        if sec_body:
+                            compiled_sections.append(f"\n==================== {sec.upper()} ====================\n{sec_body}")
+
+                    sections_joined = "\n\n".join(compiled_sections)
+
+                    final_document_string = f"""IN THE {st.session_state.selected_court.upper()}
+***********
+{ep_cat_mapped} MISC. WRIT PETITION NO. ______ OF {datetime.now().year}
+(Under {provision_text})
+
+DISTRICT – {district_mapped}
+
+IN THE MATTER OF:
+{p_compiled}
+---- Petitioner(s)
+
+VERSUS
+
+{r_compiled}
+---- Respondent(s)
+{sections_joined}
+
+SPLIT_ROW|DATED: {today_str}|COUNSEL FOR THE PETITIONER:
+{adv_signature_text}"""
+
 
                 else:
                     final_document_string = f"""BEFORE THE HON'BLE {st.session_state.selected_court.upper()}
