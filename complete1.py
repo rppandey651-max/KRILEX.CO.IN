@@ -369,11 +369,10 @@ elif not st.session_state.logged_in:
                 if st.button("🚀 Explore Demo Workspace", use_container_width=True, key="landing_demo_bypass_trigger"):
                     st.session_state.logged_in = True
                     st.session_state.username = "DemoGuest"
-                    st.session_state.full_name = "reg_name.strip()"
-                    st.session_state.username = "reg_name.strrip()"
                     st.session_state.page = "dashboard"
                     st.toast("Authenticated via Instant Demo Clearance!")
                     st.rerun()
+
         with hero_right:
             st.info(
                 "**KRILEX Legal Tech Preview**\n\n"
