@@ -305,3 +305,32 @@ def toggle_user_block_status(user_id, current_status):
     """
     st.toast(f"Privilege status toggled for user: {user_id}")
     return True
+    # ==========================================================
+# --- 11. HOME PAGE COMMENTS & TESTIMONIALS FUNCTIONS ---
+# ==========================================================
+
+def add_home_comment(name, role, rating, comment):
+    try:
+        conn = sqlite3.connect(DB_NAME)
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT INTO home_comments (name, role, rating, comment) VALUES (?, ?, ?, ?)",
+            (name, role, rating, comment)
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+def get_all_home_comments():
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT name, role, rating, comment FROM home_comments ORDER BY id DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {"name": r[0], "role": r[1], "rating": r[2], "comment": r[3]}
+        for r in rows
+    ]
+
