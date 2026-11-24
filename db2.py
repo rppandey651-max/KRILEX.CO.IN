@@ -38,6 +38,24 @@ def init_db():
         cursor.execute(
             "INSERT INTO users (user_id, email, phone, password, role) VALUES (?, ?, ?, ?, ?)",
             ("admin", "admin@krilex.com", "+91 00000 00000", "KrilexAdmin@2026", "admin")
+   # Home Page Reviews & Comments Table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS home_comments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        role TEXT,
+        rating TEXT,
+        comment TEXT
+    )
+    """)
+
+    cursor.execute("SELECT COUNT(*) FROM home_comments")
+    if cursor.fetchone()[0] == 0:
+        cursor.execute(
+            "INSERT INTO home_comments (name, role, rating, comment) VALUES (?, ?, ?, ?)",
+            ("Rahul", "Legal Practitioner", "⭐⭐⭐⭐⭐", "Very clean interface and accurate Caveat PDF formatting! Saves hours of manual typing.")
+        )
+
         )
         
     conn.commit()
