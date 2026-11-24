@@ -38,7 +38,9 @@ def init_db():
         cursor.execute(
             "INSERT INTO users (user_id, email, phone, password, role) VALUES (?, ?, ?, ?, ?)",
             ("admin", "admin@krilex.com", "+91 00000 00000", "KrilexAdmin@2026", "admin")
-   # Home Page Reviews & Comments Table
+        )
+
+    # Home Page Reviews & Comments Table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS home_comments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,14 +57,13 @@ def init_db():
             "INSERT INTO home_comments (name, role, rating, comment) VALUES (?, ?, ?, ?)",
             ("Rahul", "Legal Practitioner", "⭐⭐⭐⭐⭐", "Very clean interface and accurate Caveat PDF formatting! Saves hours of manual typing.")
         )
-
-        )
         
     conn.commit()
     conn.close()
 
 # Initialize tables immediately on project runtime execution
 init_db()
+
 
 # --- Helper Function: Get User Email by User ID ---
 def get_user_email_by_id(user_id):
