@@ -430,13 +430,40 @@ elif not st.session_state.logged_in:
 
         st.divider()
 
-        # 5. Testimonials Section
-        st.markdown("<h3 style='text-align: center;'>WHAT OUR USERS SAY</h3>", unsafe_allow_html=True)
-        st.markdown("""
-            <div class="testimonial-box">
-                <strong>"Very clean interface and accurate Caveat PDF formatting! Saves hours of manual typing."</strong> — Rahul, Legal Practitioner ⭐⭐⭐⭐⭐
-            </div>
-        """, unsafe_allow_html=True)
+        # 5. Dynamic User Comments & Testimonials Section
+        st.markdown("<h3 style='text-align: center;'>WHAT OUR USERS SAY (REVIEWS & COMMENTS)</h3>", unsafe_allow_html=True)
+
+        all_comments = db.get_all_home_comments()
+        for item in all_comments:
+            st.markdown(f"""
+                <div class="testimonial-box">
+                    <strong>"{item['comment']}"</strong><br>
+                    <span style="font-size: 13px; color: #374151;">— {item['name']}, {item['role']} {item['rating']}</span>
+                </div>
+            """, unsafe_allow_html=True)
+
+        with st.expander("✍️ Leave a Review or Comment"):
+            with st.form("home_comment_form", clear_on_submit=True):
+                col_c1, col_c2, col_c3 = st.columns([2, 2, 1])
+                with col_c1:
+                    rev_name = st.text_input("Your Name", placeholder="e.g. Adv. Amit Sharma")
+                with col_c2:
+                    rev_role = st.text_input("Designation / Role", value="Advocate")
+                with col_c3:
+                    rev_rating = st.selectbox("Rating", ["⭐⭐⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐", "⭐⭐", "⭐"])
+                
+                rev_text = st.text_area("Write your comment", placeholder="Share your experience using Krilex...")
+                post_comment_btn = st.form_submit_button("Post Comment", type="primary")
+
+                if post_comment_btn:
+                    if rev_name.strip() and rev_text.strip():
+                        role_clean = rev_role.strip() if rev_role.strip() else "Legal Professional"
+                        if db.add_home_comment(rev_name.strip(), role_clean, rev_rating, rev_text.strip()):
+                            st.success("Thank you! Your comment has been posted.")
+                            st.rerun()
+                    else:
+                        st.warning("Please enter both your name and comment.")
+
 
         st.divider()
 
