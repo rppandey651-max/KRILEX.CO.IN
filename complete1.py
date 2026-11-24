@@ -444,7 +444,7 @@ elif not st.session_state.logged_in:
 
         with st.expander("✍️ Leave a Review or Comment"):
             with st.form("home_comment_form", clear_on_submit=True):
-                col_c1, col_c2, col_c3 = st.columns([2, 2, 1])
+                col_c1, col_c2, col_c3 = st.columns(3)
                 with col_c1:
                     rev_name = st.text_input("Your Name", placeholder="e.g. Adv. Amit Sharma")
                 with col_c2:
@@ -463,6 +463,7 @@ elif not st.session_state.logged_in:
                             st.rerun()
                     else:
                         st.warning("Please enter both your name and comment.")
+
 
 
         st.divider()
